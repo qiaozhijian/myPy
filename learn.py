@@ -5,28 +5,14 @@ import torch
 import copy
 import math
 import torch.nn as nn
-def clones(module, N):
-    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
 
-x=torch.arange(30,dtype=torch.float32).view(2,3,5)
-x_mean=torch.mean(x,dim=0,keepdim=True)
-x_mean0=torch.mean(x,dim=-1,keepdim=True)
-def knn(x, k):
-    print(x)
-    inner = -2 * torch.matmul(x.transpose(2, 1).contiguous(), x)
-    print(inner)
-    print(x**2)
-    xx = torch.sum(x ** 2, dim=1, keepdim=True)
-    print(xx)
-    print("xx: ",xx.transpose(1,2),"\n:inner",inner)
-    print("minus:\n",xx.transpose(1,2)-inner)
-    pairwise_distance = -xx - inner - xx.transpose(2, 1).contiguous()
-    print(pairwise_distance)
-    idx = pairwise_distance.topk(k=k, dim=-1)[1]  # (batch_size, num_points, k)
-    print(idx)
-    print(pairwise_distance.topk(k=k,dim=-1))
-    return idx
-knn(x,2)
+a=np.asarray([1,0,0,0,0,0,0,0,0]).reshape(3,3)
+print(a)
+b=np.random.rand(3,4)
+print(b)
+print(a.dot(b))
+
+
 # torch.bmm batch对应相乘
 # print(y.transpose(1,2).shape) 表示把第几维和第几维进行交换
 # softmax2=nn.Softmax(dim=0) 表示在第几维度进行运算
@@ -42,4 +28,3 @@ knn(x,2)
 # tensor.expand 扩展某个size为1的维度。如(5,1,6)扩展为(5,2,6) x(5,1,6) x.expand(-1,2,-1)
 # torch.triu(input, diagonal=0, out=None) → Tensor 返回矩阵上三角部分，其余部分定义为0。
 # nn.Embedding(2, 10)pytorch 自己的编码器
-#
