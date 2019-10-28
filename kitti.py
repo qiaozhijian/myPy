@@ -17,9 +17,11 @@ import math
 import multiprocessing as multiproc
 
 
-PCBaseDir='/media/shenyl/SYL-MHD/datatset/kitti_odometry_velodyne/data_odometry_velodyne/dataset/sequences/'
-PoseBaseDir='/media/shenyl/SYL-MHD/datatset/kitti_odometry_velodyne/dataset/poses/'
-OutDir='/media/shenyl/SYL-MHD/datatset/kitti_odometry_velodyne/processed_data/'
+PCBaseDir='/media/qzj/My Book/KITTI/data_odometry_velodyne/dataset/sequences/'
+PoseBaseDir='/media/qzj/My Book/KITTI/data_odometry_poses/'
+OutDir='/media/qzj/My Book/KITTI/processed_data_velodyne/'
+if not os.path.exists(OutDir):
+	os.mkdir(OutDir)
 PCDir=os.listdir(PCBaseDir)
 PoseDir=os.listdir(PoseBaseDir)
 
@@ -125,22 +127,23 @@ def LoadData(FrameGap,npoints,seq):
 	PCFileDir=os.listdir(PointCloudDir)
 	SeqPose=np.loadtxt(PoseBaseDir+PoseDir[seq])
 
-	pc1list=np.empty([0,4096,4],np.float32)
-	pc2list=np.empty([0,4096,4],np.float32)
+	pc1list=np.empty([0,npoints,4],np.float32)
+	pc2list=np.empty([0,npoints,4],np.float32)
 	gtlist=np.empty([0,12],np.float32)
 
 
 	for frame in range(0,len(PCFileDir)-FrameGap):
-	#for frame in range(100,101):
+	# for frame in np.linspace(1,4000,10,endpoint=True).astype(int):
 		frame2=frame+FrameGap
-		pc1=np.fromfile(PointCloudDir+PCFileDir[frame],dtype=np.float32,count=-1).reshape([-1,4])
-		pc2=np.fromfile(PointCloudDir+PCFileDir[frame2],dtype=np.float32,count=-1).reshape([-1,4])
+		pc1_raw=np.fromfile(PointCloudDir+PCFileDir[frame],dtype=np.float32,count=-1).reshape([-1,4])
+		pc2_raw=np.fromfile(PointCloudDir+PCFileDir[frame2],dtype=np.float32,count=-1).reshape([-1,4])
 			
 		#plot3d(pc1,pc2,0.3)
 		##remove ground
-		pc1_rmground,pc1_ground=RemoveGround(pc1,distance_threshold,sample_size,max_iterations)
-		pc2_rmground,pc2_ground=RemoveGround(pc2,distance_threshold,sample_size,max_iterations)
-
+		pc1_rmground,pc1_ground=RemoveGround(pc1_raw,distance_threshold,sample_size,max_iterations)
+		pc2_rmground,pc2_ground=RemoveGround(pc2_raw,distance_threshold,sample_size,max_iterations)
+		# pc1_rmground = pc1_raw
+		# pc2_rmground = pc2_raw
 		#plot3d(pc1_ground,pc1_rmground,0.3)
 
 		##random sapmle
@@ -154,15 +157,12 @@ def LoadData(FrameGap,npoints,seq):
 		 -7.206933692422e-03, -2.921968648686e-01])
 		t_r = np.asarray([t[0:3], t[4:7], t[8:11]]).reshape(3, 3)
 		t_t = np.asarray([t[3], t[7], t[11]]).reshape(3, 1)
-		pc1 = (t_r.dot(pc1_sampled.T) + t_t).T
-		pc2 = (t_r.dot(pc2_sampled.T) + t_t).T
 
-		#plot3d(pc1_sampled,pc2_sampled,s=0.2)
-		#print('pc1_sampled'+str(pc1_sampled.shape)+'\n')
-		#print('pc1list'+str(pc1list.shape)+'\n')
-		#put into list pc1list and pc2list
-		pc1list = np.append(pc1list, np.expand_dims(pc1,axis=0), axis = 0)
-		pc2list = np.append(pc2list, np.expand_dims(pc2,axis=0), axis = 0)
+		pc1_sampled[:,0:3] = (t_r.dot(pc1_sampled[:,0:3].T) + t_t).T
+		pc2_sampled[:,0:3] = (t_r.dot(pc2_sampled[:,0:3].T) + t_t).T
+
+		pc1list = np.append(pc1list, np.expand_dims(pc1_sampled,axis=0), axis = 0)
+		pc2list = np.append(pc2list, np.expand_dims(pc2_sampled,axis=0), axis = 0)
 			
 		#compute T21 groundtruth and put into list gtlist
 		Tw1=np.zeros([4,4])
@@ -177,11 +177,11 @@ def LoadData(FrameGap,npoints,seq):
 		print('process frame'+str(frame))
 
 		##*********经过正确位姿旋转后，再可视化看一下**********##
-		R_ab = np.asarray([gt[0:3], gt[4:7], gt[8:11]]).reshape(3, 3)
-		translation_ab = np.asarray([gt[3], gt[7], gt[11]]).reshape(3, 1)
-		plot3d(pc1, pc2)
-		pc1 = R_ab.dot(pc1.T) + translation_ab
-		plot3d(pc1, pc2)
+		# R_ab = np.asarray([gt[0,0:3], gt[0,4:7], gt[0,8:11]]).reshape(3, 3)
+		# translation_ab = np.asarray([gt[0,3], gt[0,7], gt[0,11]]).reshape(3, 1)
+		# # plot3d(pc1_sampled, pc2_sampled)
+		# pc1_sampled[:,0:3] = (R_ab.dot(pc1_sampled[:,0:3].T) + translation_ab).T
+		# plot3d(pc1_sampled, pc2_sampled)
 
 	#save as npz for each seq
 	np.savez(OutDir+'seq'+str(seq)+'.npz',pc1=pc1list,pc2=pc2list,gt=gtlist)
