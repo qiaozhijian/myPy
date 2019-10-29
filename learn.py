@@ -6,11 +6,17 @@ import copy
 import math
 import torch.nn as nn
 
-a=np.asarray([1,0,0,0,0,0,0,0,0]).reshape(3,3)
-print(a)
-b=np.random.rand(3,4)
+with np.load('seq0.npz') as f:
+    print(f)
+print(f)
+
+
+
+b=np.random.rand(6,4)
 print(b)
-print(a.dot(b))
+
+print(b[:,2]<max(b[:,2]))
+print(b[b[:,2]<max(b[:,2])])
 
 
 # torch.bmm batch对应相乘
