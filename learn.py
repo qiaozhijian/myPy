@@ -6,18 +6,16 @@ import copy
 import math
 import torch.nn as nn
 
-with np.load('seq0.npz') as f:
-    print(f)
-print(f)
-
-
-
-b=np.random.rand(6,4)
+a=np.random.rand(3,4)
+b=np.random.rand(4,4)
+c=np.append(a,b,0)
+print(c.shape)
+def ch(a):
+    a=np.eye(4,4).dot(a).dot(a)
+    return a
 print(b)
-
-print(b[:,2]<max(b[:,2]))
-print(b[b[:,2]<max(b[:,2])])
-
+c=ch(b)
+print(c)
 
 # torch.bmm batch对应相乘
 # print(y.transpose(1,2).shape) 表示把第几维和第几维进行交换

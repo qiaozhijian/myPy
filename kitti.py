@@ -22,11 +22,11 @@ if isRmGround:
 	PCBaseDir = '/media/qzj/My Book/KITTI/data_odometry_velodyne/rmground/'
 else:
 	PCBaseDir='/media/qzj/My Book/KITTI/data_odometry_velodyne/dataset/sequences/'
-
 RmgroundOutDir='./rmground/'
 GroundOutDir='./ground/'
 PoseBaseDir='/media/qzj/My Book/KITTI/data_odometry_poses/'
 OutDir='/media/qzj/Ubuntu 18.0/kitti/'
+
 if not os.path.exists(OutDir):
 	os.mkdir(OutDir)
 PCDir=os.listdir(PCBaseDir)
@@ -71,7 +71,7 @@ def estimate_plane(xyz,normalize=True):
 #remove ground by ransac
 def RemoveGround(pc,distance_threshold=0.3,sample_size=3,max_iterations=300):
 	i=0
-	random.seed(12345)
+	random.seed(1234)
 	max_point_num=-999
 	R_L=range(pc.shape[0])
 	max_pc_ground=np.empty([0,4])
@@ -135,17 +135,16 @@ def plotpc(data1,s=0.1):
 	ax.set_zlabel("z")
 	plt.show()
 
+# pc1
 def velodyne2camera(pc1,pc2):
-	t = np.asarray(
-		[4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02, -7.210626507497e-03,
-		 8.081198471645e-03, -9.999413164504e-01, -5.403984729748e-02, 9.999738645903e-01, 4.859485810390e-04,
-		 -7.206933692422e-03, -2.921968648686e-01])
-	t_r = np.asarray([t[0:3], t[4:7], t[8:11]]).reshape(3, 3)
-	t_t = np.asarray([t[3], t[7], t[11]]).reshape(3, 1)
+    t = np.asarray([4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02, -7.210626507497e-03,8.081198471645e-03,
+                    -9.999413164504e-01, -5.403984729748e-02, 9.999738645903e-01, 4.859485810390e-04,-7.206933692422e-03, -2.921968648686e-01])
+    t_r = np.asarray([t[0:3], t[4:7], t[8:11]]).reshape(3, 3)
+    t_t = np.asarray([t[3], t[7], t[11]]).reshape(3, 1)
 
-	pc1[:, 0:3] = (t_r.dot(pc1[:, 0:3].T) + t_t).T
-	pc2[:, 0:3] = (t_r.dot(pc2[:, 0:3].T) + t_t).T
-	return pc1,pc2
+    pc1 = t_r.dot(pc1) + t_t
+    pc2 = t_r.dot(pc2) + t_t
+    return pc1,pc2
 
 def generateRmGroud(seq):
 	print('start run seq'+str(seq))
@@ -164,6 +163,17 @@ def generateRmGroud(seq):
 		pc_rmground.tofile(RmgroundDir+str(frame).zfill(6)+'.bin')
 		pc_ground.tofile(GroundDir+str(frame).zfill(6)+'.bin')
 	print('end run seq'+str(seq))
+
+# def sampleUniform(pointCloud):
+# 	pointCloud=pointCloud[:,0:3]
+def camera2velodyne(gt_c):
+    t = np.asarray( [4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02,-7.210626507497e-03,  \
+                    8.081198471645e-03, -9.999413164504e-01, -5.403984729748e-02, 9.999738645903e-01,4.859485810390e-04,  \
+                            -7.206933692422e-03, -2.921968648686e-01,0,0,0,1]).reshape(4,4)
+    gt_v = np.linalg.inv(t).dot(gt_c)
+    gt_v=gt_v.dot(t)
+    return gt_v
+
 
 def LoadData(FrameGap,npoints,seq):
 	print('start run seq'+str(seq))
@@ -195,9 +205,6 @@ def LoadData(FrameGap,npoints,seq):
 		##random sapmle
 		pc1_sampled=np.random.permutation(pc1_rmground)[0:npoints]
 		pc2_sampled=np.random.permutation(pc2_rmground)[0:npoints]
-		# plotpc(pc1_sampled)
-		# plotpc(pc2_sampled)
-		pc1_sampled,pc2_sampled=velodyne2camera(pc1_sampled,pc2_sampled)
 
 		pc1list = np.append(pc1list, np.expand_dims(pc1_sampled,axis=0), axis = 0)
 		pc2list = np.append(pc2list, np.expand_dims(pc2_sampled,axis=0), axis = 0)
@@ -208,23 +215,23 @@ def LoadData(FrameGap,npoints,seq):
 		Tw1[0:3,0:4]=SeqPose[frame].reshape([3,4])
 		Tw2[0:3,0:4]=SeqPose[frame2].reshape([3,4])
 		T21=(np.dot(np.linalg.inv(Tw2),Tw1))
+		T21=camera2velodyne(T21)
 		gt=(T21[0:3,0:4]).reshape([1,12])
 		gtlist = np.append(gtlist, gt, axis = 0)
 		if frame%100==0:
 			print('seq: '+str(seq)+'  frame: '+str(frame))
 
 		####*********经过正确位姿旋转后，再可视化看一下**********##
-		R_ab = np.asarray([gt[0,0:3], gt[0,4:7], gt[0,8:11]]).reshape(3, 3)
-		translation_ab = np.asarray([gt[0,3], gt[0,7], gt[0,11]]).reshape(3, 1)
+		# R_ab = np.asarray([gt[0,0:3], gt[0,4:7], gt[0,8:11]]).reshape(3, 3)
+		# translation_ab = np.asarray([gt[0,3], gt[0,7], gt[0,11]]).reshape(3, 1)
 		# plot3d(pc1_sampled, pc2_sampled)
-		pc1_sampled[:,0:3] = (R_ab.dot(pc1_sampled[:,0:3].T) + translation_ab).T
-		plot3d(pc1_sampled, pc2_sampled)
+		# pc1_sampled[:,0:3] = (R_ab.dot(pc1_sampled[:,0:3].T) + translation_ab).T
+		# plot3d(pc1_sampled, pc2_sampled)
 
 	#save as npz for each seq
 	print('end run seq'+str(seq))
 	np.savez(OutDir+'seq'+str(seq)+'.npz',pc1=pc1list,pc2=pc2list,gt=gtlist)
 	print('save to '+OutDir+'seq'+str(seq)+'.npz')
-
 
 def run_all_processes(all_p):
 	try:
@@ -242,7 +249,7 @@ def run_all_processes(all_p):
 if __name__ == '__main__':
 
     all_p = []
-    for seq in range(0,1):
+    for seq in range(0,11):
 		all_p.append(multiproc.Process(target=LoadData,args=(5,4096,seq)))
 		# all_p.append(multiproc.Process(target=generateRmGroud,args=(seq)))
     run_all_processes(all_p)

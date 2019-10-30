@@ -15,21 +15,59 @@ def plot3d(data1,data2,s=0.2):
     ax.set_ylabel("y")
     ax.set_zlabel("z")
     plt.show()
+def velodyne2camera(pc1,pc2):
+    t = np.asarray([4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02, -7.210626507497e-03,8.081198471645e-03,
+                    -9.999413164504e-01, -5.403984729748e-02, 9.999738645903e-01, 4.859485810390e-04,-7.206933692422e-03, -2.921968648686e-01])
+    t_r = np.asarray([t[0:3], t[4:7], t[8:11]]).reshape(3, 3)
+    t_t = np.asarray([t[3], t[7], t[11]]).reshape(3, 1)
+
+    pc1 = t_r.dot(pc1) + t_t
+    pc2 = t_r.dot(pc2) + t_t
+    return pc1,pc2
+def velodyne2camera_inv(pc1,pc2):
+    t = np.asarray([4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02, -7.210626507497e-03,8.081198471645e-03,
+                    -9.999413164504e-01, -5.403984729748e-02, 9.999738645903e-01, 4.859485810390e-04,-7.206933692422e-03, -2.921968648686e-01,0,0,0,1]).reshape(4,4)
+    t=np.linalg.inv(t)
+    t_r = t[0:3,0:3].reshape(3, 3)
+    t_t = t[0:3,3].reshape(3, 1)
+
+    pc1 = t_r.dot(pc1) + t_t
+    pc2 = t_r.dot(pc2) + t_t
+    return pc1,pc2
+def camera2velodyne(gt_c):
+    t = np.asarray( [4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02,-7.210626507497e-03,  \
+                    8.081198471645e-03, -9.999413164504e-01, -5.403984729748e-02, 9.999738645903e-01,4.859485810390e-04,  \
+                            -7.206933692422e-03, -2.921968648686e-01,0,0,0,1]).reshape(4,4)
+    gt_v = np.linalg.inv(t).dot(gt_c)
+    gt_v=gt_v.dot(t)
+    return gt_v
 
 if __name__ == '__main__':
+    modifyP=False
     rawdata = np.load('../dcp/data/kitti/seq0.npz')
     # rawdata = np.load('seq0.npz')
-    pc1=rawdata['pc1'][0,:,0:3].T
-    pc2=rawdata['pc2'][0,:,0:3].T
-    gt=rawdata['gt'][0].T
+    num=1
+    pc1=rawdata['pc1'][num,:,0:3].T
+    pc2=rawdata['pc2'][num,:,0:3].T
+    pc1, pc2 = velodyne2camera_inv(pc1, pc2)
+    gt=rawdata['gt'][num].T
     R_ab = np.asarray([gt[0:3], gt[4:7], gt[8:11]]).reshape(3, 3)
     translation_ab = np.asarray([gt[3], gt[7], gt[11]]).reshape(3,1)
-    # t=np.asarray([4.276802385584e-04,-9.999672484946e-01,-8.084491683471e-03,-1.198459927713e-02,-7.210626507497e-03,8.081198471645e-03,-9.999413164504e-01,-5.403984729748e-02,9.999738645903e-01,4.859485810390e-04,-7.206933692422e-03,-2.921968648686e-01])
-    # t_r = np.asarray([t[0:3], t[4:7], t[8:11]]).reshape(3, 3)
-    # t_t = np.asarray([t[3], t[7], t[11]]).reshape(3,1)
-    # pc1=t_r.dot(pc1)+t_t
-    # pc2=t_r.dot(pc2)+t_t
-    # print(gt.reshape(3,4))
-    plot3d(pc1,pc2)
-    pc1=R_ab.dot(pc1)+translation_ab
-    plot3d(pc1,pc2)
+
+    if modifyP:
+        pc1, pc2 = velodyne2camera(np.copy(pc1), pc2)
+        plot3d(pc1, pc2)
+        pc1 = R_ab.dot(pc1) + translation_ab
+        plot3d(pc1, pc2)
+    else:
+        gt_c = np.eye(4, 4)
+        gt_c[0:3,0:3]=R_ab
+        gt_c[0:3,3]=translation_ab.reshape(3)
+        gt_v=camera2velodyne(gt_c)
+        R_ab = gt_v[0:3,0:3]
+        translation_ab = gt_v[0:3,3]
+        print(gt_v)
+        print(gt_c)
+        plot3d(pc1, pc2)
+        pc1 = R_ab.dot(pc1) + translation_ab.reshape(3,1)
+        plot3d(pc1, pc2)
