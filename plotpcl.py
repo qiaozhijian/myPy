@@ -6,7 +6,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import torch
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.decomposition import PCA
-
+def lala2():
+    print(np.random.rand(1, 4))
 
 def toCameraCoord(pose_mat):
     '''

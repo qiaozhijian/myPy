@@ -1,5 +1,7 @@
 import numpy as np
+import itertools
 import os
+from plotpcl import lala2
 def velodyne2camera(gt_v):
     t = np.asarray( [4.276802385584e-04, -9.999672484946e-01, -8.084491683471e-03, -1.198459927713e-02,
                     -7.210626507497e-03, 8.081198471645e-03, -9.999413164504e-01, -5.403984729748e-02,
@@ -8,11 +10,13 @@ def velodyne2camera(gt_v):
     gt_c=t.dot(gt_v)
     gt_c = gt_c.dot(np.linalg.inv(t))
     return gt_c
+def lala():
+    print(np.random.rand(1,4))
+np.random.seed(1234)
 if 1:
-    a=np.random.rand(4,5,6)
-    print(a.shape)
-    print(len(a))
-
+    a=[1,2,3]
+    a=np.random.rand(3,1)
+    print(a.mean())
 if 0:
     f=open('a.txt','a')
     for i in range(1000000):
