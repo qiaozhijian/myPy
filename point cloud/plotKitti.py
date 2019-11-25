@@ -4,7 +4,50 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import random
 import math
+def plot3d_14(data1,data2,data3,data4,data5,data6,data7,data8,s=0.3):
+    fig=plt.figure()
+    elev=90;azim=0
+    ax = fig.add_subplot(141, projection='3d')
+    ax.view_init(elev=elev, azim=azim)
+    ax.scatter(data1[0], data1[1], data1[2], color='blue', s=s)
+    ax.scatter(data2[0], data2[1], data2[2], color='red', s=s)
+    plt.xlim((-50, 80))
+    plt.ylim((-50, 75))
+    plt.axis('off')
+    # ax.set_xlabel("x");ax.set_ylabel("y");ax.set_zlabel("z")
+    # plt.title('input')
 
+    ax = fig.add_subplot(142, projection='3d')
+    ax.view_init(elev=elev, azim=azim)
+    ax.scatter(data3[0], data3[1], data3[2], color='blue', s=s)
+    ax.scatter(data4[0], data4[1], data4[2], color='red', s=s)
+    # ax.set_xlabel("x");ax.set_ylabel("y");ax.set_zlabel("z")
+    plt.xlim((-50, 80))
+    plt.ylim((-50, 75))
+    plt.axis('off')
+    # plt.title('ICP')
+
+    ax=fig.add_subplot(143,projection='3d')
+    ax.view_init(elev=elev, azim=azim)
+    ax.scatter(data5[0], data5[1], data5[2], color='blue', s=s)
+    ax.scatter(data6[0], data6[1], data6[2], color='red', s=s)
+    plt.xlim((-50, 80))
+    plt.ylim((-50, 75))
+    # ax.set_xlabel("x");ax.set_ylabel("y");ax.set_zlabel("z")
+    plt.axis('off')
+    # plt.title('LPD-Pose')
+
+    ax=fig.add_subplot(144,projection='3d')
+    ax.view_init(elev=elev, azim=azim)
+    ax.scatter(data7[0], data7[1], data7[2], color='blue', s=s)
+    ax.scatter(data8[0], data8[1], data8[2], color='red', s=s)
+    plt.xlim((-50, 80))
+    plt.ylim((-50, 75))
+    # ax.set_xlabel("x");ax.set_ylabel("y");ax.set_zlabel("z")
+    fig.set_tight_layout(True)
+    # plt.title('LPD-Pose + ICP')
+    plt.axis('off')
+    plt.show()
 def plot3d_22(data1,data2,data3,data4,s=0.5):
     fig=plt.figure()
     elev=90;azim=0
@@ -228,9 +271,9 @@ def downSample(pc,rate):
 from scipy.spatial.transform import Rotation
 
 if 1:
-    seqN=0
-    binNum=200
-    binNumNext=210
+    seqN=6
+    binNum=1000
+    binNumNext=1040
     pc1=getPcSingle(seqN,binNum)
     pc2=getPcSingle(seqN,binNumNext)
 
@@ -242,11 +285,23 @@ if 1:
     print("rad:",euler_ab*180.0/np.pi)
     print(translation_ab)
 
-    r1 = Rotation.from_euler('zyx', np.random.randn(3) * 5.0, degrees=True)
-    # R_ab = r1.as_dcm()*R_ab
-    rand=np.random.rand() * 2 - 0.5
-    pc1_ = R_ab.dot(pc1) + translation_ab+np.asarray([rand/1,rand/2,rand/7]).reshape(3,1)
-    plot3d_2(pc1, pc2, pc1_, pc2,euler_ab,np.linalg.norm(translation_ab),rand)
+    # r2 = Rotation.from_euler('zyx', [30, 0.1, 0.1], degrees=True)
+    # R_ab_2 = r2.as_dcm().dot(R_ab)
+    # pc12 = R_ab_2.dot(pc1) + translation_ab+np.asarray([0,-60,0]).reshape(3,1)
+
+    r1 = Rotation.from_euler('zyx', [3,0.1,0.1], degrees=True)
+    R_ab_dcp = r1.as_dcm().dot(R_ab)
+
+    rand=-1.5
+    pc1_ = R_ab.dot(pc1) + translation_ab+np.asarray([rand/1,rand/7,rand/2]).reshape(3,1)
+
+    rand=0.5
+    pc1__ = R_ab_dcp.dot(pc1) + translation_ab+np.asarray([rand/1,rand/7,rand/2]).reshape(3,1)
+
+    rand=0.5
+    pc1___ = R_ab.dot(pc1) + translation_ab
+
+    plot3d_14(pc1, pc2, pc1_, pc2, pc1__, pc2, pc1___, pc2)
 
     # R_ab, translation_ab=getT21(seqN,binNum,binNumNext)
     # pc1_ = R_ab.dot(pc1) + translation_ab
