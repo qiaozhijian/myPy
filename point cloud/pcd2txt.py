@@ -7,7 +7,7 @@ class Point(object):
         self.y = y
         self.z = z
 points = []
-filename = '/media/zhijian/Document/grow/slam/expriment/hatcl/loam02/cornerMap'
+filename = '/media/qzj/Windows/love/code/catkin_lego/src/LeGO-LOAM/experiment/kitti/trajectory'
 with open(filename+'.pcd') as f:
     for line in  f.readlines()[11:len(f.readlines())-1]:
         strs = line.split(' ')
