@@ -715,7 +715,6 @@ class kittiOdomEval():
         #     print ("{0:.2f}".format(ave_r_errs[seq]/np.pi*180*100))
         # print ("-------------------------------------------------")
 
-
     def evalFromPose(self, poses_result, poses_gt):
         len_re = len(poses_result)
         len_gt = len(poses_gt)
@@ -742,12 +741,15 @@ class kittiOdomEval():
         ave_t_err, ave_r_err = self.evalFromDeltaPose(pose_gap, pose_gt, gap=gap)
 
         return ave_t_err, ave_r_err
-    def evalPoseFromPath(self,path1,path2):
-        pose1=self.loadPoses(path1,toCameraCoord=False)
-        pose2=self.loadPoses(path2,toCameraCoord=False)
+
+    def evalPoseFromPath(self, path1, path2):
+        pose1 = self.loadPoses(path1, toCameraCoord=False)
+        pose2 = self.loadPoses(path2, toCameraCoord=False)
+
+
 if __name__ == "__main__":
-    path1= '/media/qzj/Windows/love/code/catkin_lego/src/LeGO-LOAM/experiment/kitti/00/00.txt'
-    path2= '/media/qzj/Windows/love/code/catkin_lego/src/LeGO-LOAM/experiment/kitti/00/trajectory.txt'
+    path1 = '/media/qzj/Windows/love/code/catkin_lego/src/LeGO-LOAM/experiment/kitti/00/00.txt'
+    path2 = '/media/qzj/Windows/love/code/catkin_lego/src/LeGO-LOAM/experiment/kitti/00/trajectory.txt'
 # def getLoss(pose1,pose2):
 #     n=pose1.shape[0]
 #     loss_total=0

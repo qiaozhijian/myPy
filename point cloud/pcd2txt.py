@@ -9,8 +9,7 @@ class Point(object):
 points = []
 filename = '/media/qzj/Windows/love/code/catkin_ws/src/LeGO-LOAM/experiment/hactl_round5/forward/real/trajectory'
 with open(filename+'.pcd') as f:
-    for line in  f.readlines()[11:len(f.readlines())-1]:
-        strs = line.split(' ')
+    for line in  f.readlines()[11:len(f.readlines())-1]:        strs = line.split(' ')
         points.append(Point(strs[0],strs[1],strs[2].strip()))
 fw = open(filename+'.txt','w')
 for i in range(len(points)):
