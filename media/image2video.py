@@ -14,6 +14,8 @@ path_pcl_icp = path+'icp/'
 path_pcl_our = path+'our/'
 path_pcl_our2 = path+'our2/'
 path_video = path+'video/'
+path_odo = '/media/qzj/Software/code/Structure-SLAM-PL/odometry/'
+path_video = path_odo
 
 def jpg2video(sp, fps):
     """ 将图片合成视频. sp: 视频路径，fps: 帧率 """
@@ -38,7 +40,7 @@ def video(path,file,image=False):
     path = path
     videoPath = path_video + file+'.mp4'
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    fps = 25
+    fps = 10
     if image:
         im = Image.open(path + str(100000) + '.png')
         size = (512,288)
@@ -54,7 +56,7 @@ def video(path,file,image=False):
         # print(i)
         framePath = path + str(i) + '.png'
         frame = cv2.imread(framePath)
-        frame = cv2.resize(frame, size)
+        # frame = cv2.resize(frame, size)
         videoWriter.write(frame)
     videoWriter.release()
     print('over')
@@ -63,9 +65,10 @@ if __name__ == '__main__':
 
     # video(path_pcl_night_image,'night_image',image=True)
     # video(path_pcl_day_image,'day_image',image=True)
-    video(path_pcl_none,'pcl_none')
-    video(path_pcl_day,'pcl_day')
-    video(path_pcl_night,'pcl_night')
+    # video(path_pcl_none,'pcl_none')
+    # video(path_pcl_day,'pcl_day')
+    # video(path_pcl_night,'pcl_night')
+    video(path_odo,'odo',image=False)
     # video(path_pcl_dcp,'dcp')
     # video(path_pcl_our,'our')
     # video(path_pcl_our2,'our2')

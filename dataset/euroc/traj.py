@@ -7,6 +7,7 @@ import os
 # eval_name = "orbstereo_102.txt"
 # eval_name = "vicon101easy.txt"
 eval_name = "orbstereo_101.txt"
+eval_name = "robot04_orb_slam.txt"
 # eval_name = "orbstereo_216_vo.txt"
 # eval_name = "orbmono_101.txt"
 eval_name_new = "eval_name_new.txt"
@@ -19,6 +20,7 @@ f = open(gt_file, 'r')
 w = open(gt_file_new, 'w')
 s = f.readlines()
 f.close()
+os.system("evo_traj tum " + eval_name + " --ref "+ eval_name+ " --plot --plot_mode=xyz -va")
 
 T_bv = np.asarray([0.33638, -0.01749, 0.94156, 0.06901,
                    -0.02078, -0.99972, -0.01114, -0.02781,
@@ -44,6 +46,7 @@ for cnt, line in enumerate(s):
     line_split = [float(i) for i in line.split()]
     t = line_split[1:4]
     q = line_split[4:]
+    # 四元数搞反了吧
     rotation = Rotation.from_quat(q)
     r = rotation.as_dcm()
     T = np.eye(4)
@@ -73,6 +76,7 @@ for i in range(trajNew.shape[0]):
     t = T[0:3, 3]
     q = Rotation.from_dcm(T[0:3, 0:3]).as_quat()
     ss = str(timeStamps[i])
+    # 两个i？
     for i in range(3):
         ss = ss + " " + str(t[i])
     for i in range(4):
