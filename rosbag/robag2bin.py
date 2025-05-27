@@ -3,25 +3,21 @@ import sys
 import rospy
 import roslib
 import rosbag
-import pcl
+import os
 import numpy as np
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
 
-def pc2_to_pcd(pc2_list, index):
-    p = pcl.PointCloud()
-    p.from_array(np.asarray(pc2_list, dtype='float32'))
-    p.to_file(str(index) + ".pcd")
+def pc2_to_pcd(pc2_list, index, dir):
+    pcl = np.asarray(pc2_list)
+    print(pcl.shape)
+    pcl.tofile(os.path.join(dir, str(index) + ".bin"))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Convert select ROS PointCloud2 msg to PCD')
-    #
-    parser.add_argument('-f', '--filepath', help='Input bag files')
-    parser.add_argument('-o', '--output_dir', help='Output directory')
-    # parser.add_argument('-i', '--initial_cloud',
-    #                     help='Message in bag containing desired cloud')
-    # parser.add_argument('-e', '--final cloud', help="Message index containing final cloud")
+    parser.add_argument('-f', '--filepath', help='Input bag files', default="/home/qzj/Desktop/1.bag")
+    parser.add_argument('-o', '--output_dir', help='Output directory', default="/home/qzj/Desktop/pcd")
 
     args = parser.parse_args()
 
@@ -61,5 +57,5 @@ if __name__ == '__main__':
         for p in gen:
             p_.append(p)
 
-        pc2_to_pcd(p_, index)
+        pc2_to_pcd(p_, index, args.output_dir)
         index = index + 1
